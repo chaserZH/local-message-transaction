@@ -29,7 +29,8 @@
         <hutool.version>5.8.24</hutool.version>
         <jackson.version>2.14.1</jackson.version>
         <apollo.version>2.1.0</apollo.version>
-        <xxl-job.version>2.3.0</xxl-job.version>
+        <xxl-job.version>2.4.0</xxl-job.version>
+        <spring-cloud.version>4.1.1</spring-cloud.version>
     </properties>
 
     <!-- 仓库配置（国内推荐） -->
@@ -128,6 +129,14 @@
                 <artifactId>apollo-client</artifactId>
                 <version>${apollo.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-context</artifactId>
+                <version>3.1.1</version> <!-- 使用与您的Spring Cloud版本匹配的版本 -->
+            </dependency>
+
+
         </dependencies>
     </dependencyManagement>
 
