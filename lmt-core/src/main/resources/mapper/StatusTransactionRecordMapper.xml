@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.charserzh.lmt.core.repository.dao.StatusTransactionRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.charserzh.lmt.core.repository.dao.StatusTransactionRecordDO">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="execStatus" column="exec_status" jdbcType="TINYINT"/>
+        <result property="firstExecTime" column="first_exec_time" jdbcType="BIGINT"/>
+        <result property="bizScene" column="biz_scene" jdbcType="VARCHAR"/>
+        <result property="bizSceneCode" column="biz_scene_code" jdbcType="VARCHAR"/>
+        <result property="execTimes" column="exec_times" jdbcType="INTEGER"/>
+        <result property="retryTimes" column="retry_times" jdbcType="INTEGER"/>
+        <result property="bizId" column="biz_id" jdbcType="VARCHAR"/>
+        <result property="bizContent" column="biz_content" jdbcType="VARCHAR"/>
+        <result property="errorMessage" column="error_message" jdbcType="VARCHAR"/>
+        <result property="isDelete" column="is_delete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,exec_status,first_exec_time,
+        biz_scene,biz_scene_code,exec_times,
+        retry_times,biz_id,biz_content,
+        error_message,is_delete
+    </sql>
+    <insert id="batchInsert">
+        insert into mobile_app.t_status_transaction_record
+        (exec_status, first_exec_time, biz_scene, biz_scene_code, exec_times, retry_times, biz_id, biz_content,
+        error_message, is_delete,create_time,update_time)
+        values
+        <foreach collection="list" separator="," item="item">
+            (#{item.execStatus},#{item.firstExecTime},#{item.bizScene},#{item.bizSceneCode},#{item.execTimes},#{item.retryTimes},#{item.bizId},#{item.bizContent},#{item.errorMessage},#{item.isDelete},#{item.createTime},#{item.updateTime})
+        </foreach>
+    </insert>
+</mapper>
