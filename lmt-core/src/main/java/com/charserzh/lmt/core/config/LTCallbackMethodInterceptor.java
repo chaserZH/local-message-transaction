@@ -1,6 +1,5 @@
 package com.charserzh.lmt.core.config;
 
-import cn.hutool.json.JSONUtil;
 import com.charserzh.lmt.core.eums.TransactionExecStatusEnum;
 import com.charserzh.lmt.core.model.CallbackResultValue;
 import com.charserzh.lmt.core.model.StatusTransactionRecordEntity;
@@ -9,69 +8,54 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.lang.reflect.Method;
-import java.util.Objects;
-import java.util.Optional;
-
-public class LTCallbackMethodInterceptor implements MethodInterceptor, ApplicationContextAware {
+/**
+ * AOP 拦截器
+ * 1. 拦截本地消息事务的回调方法
+ * 2. 回调方法执行完成后，更新事务状态
+ */
+public class LTCallbackMethodInterceptor implements MethodInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(LTCallbackMethodInterceptor.class);
 
-    private ApplicationContext applicationContext;
+    private final StatusTransactionRecordRepository repository;
 
-    @Nullable
+    public LTCallbackMethodInterceptor(StatusTransactionRecordRepository repository) {
+        this.repository = repository;
+    }
+
+
     @Override
-    public Object invoke(@Nonnull MethodInvocation invocation) throws Throwable {
-        log.info("local message transaction callback:{},{},{}", new Object[] { invocation.getThis(), invocation.getMethod().getName(), invocation.getArguments() });
-        Method method = invocation.getMethod();
-        Object[] args = invocation.getArguments();
-        if (method.getName().equals("callback")) {
-            Object result;
-            StatusTransactionRecordEntity entity = (StatusTransactionRecordEntity)args[0];
-            try{
+    public Object invoke(MethodInvocation invocation) throws Throwable {
+        log.info("local message transaction callback: {}, method: {}, args: {}", invocation.getThis(), invocation.getMethod().getName(), invocation.getArguments());
+
+        if ("callback".equals(invocation.getMethod().getName())) {
+            StatusTransactionRecordEntity entity = (StatusTransactionRecordEntity) invocation.getArguments()[0];
+            try {
                 if (TransactionExecStatusEnum.codeOf(entity.getExecStatus()) == TransactionExecStatusEnum.SUCCESS) {
-                    log.warn("transaction record already been success, ignore,{}", JSONUtil.toJsonStr(entity));
+                    log.warn("transaction record already success, ignore: {}", entity);
                     return null;
                 }
-                result = invocation.proceed();
-                if (Objects.isNull(result)){
-                    return result;
-                }
-                CallbackResultValue callbackResultValue = (CallbackResultValue)result;
-                if (callbackResultValue.isResult()) {
-                    log.info("testing exec update success");
+                CallbackResultValue result = (CallbackResultValue) invocation.proceed();
+                if (result != null && result.isResult()) {
                     entity.setExecStatus(1);
                     entity.setIsDelete(1);
-                } else {
+                } else if (result != null) {
                     entity.setExecStatus(2);
-                    entity.setErrorMessage(callbackResultValue.getMessage());
+                    entity.setErrorMessage(result.getMessage());
                 }
-                entity.setExecTimes(Optional.ofNullable(entity.getExecTimes()).orElse(0) + 1);
-                updateEntity(entity);
-            }catch (Exception e){
+                entity.setExecTimes((entity.getExecTimes() == null ? 0 : entity.getExecTimes()) + 1);
+                repository.update(entity);
+            } catch (Exception e) {
                 log.error("local message transaction callback error", e);
                 entity.setErrorMessage(e.getMessage());
                 entity.setExecStatus(0);
-                entity.setExecTimes(Optional.ofNullable(entity.getExecTimes()).orElse(0) + 1);
-                updateEntity(entity);
+                entity.setExecTimes((entity.getExecTimes() == null ? 0 : entity.getExecTimes()) + 1);
+                repository.update(entity);
             }
         }
         return invocation.proceed();
     }
 
-    private void updateEntity(StatusTransactionRecordEntity entity) {
-        StatusTransactionRecordRepository statusTransactionRecordRepository = (StatusTransactionRecordRepository)this.applicationContext.getBean(StatusTransactionRecordRepository.class);
-        statusTransactionRecordRepository.update(entity);
-    }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
 }

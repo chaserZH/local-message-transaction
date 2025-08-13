@@ -57,7 +57,7 @@ public class LTCallbackBeanPostProcessor extends AbstractAutoProxyCreator implem
      */
     @Override
     protected Object[] getAdvicesAndAdvisorsForBean(Class<?> beanClass, String beanName, TargetSource customTargetSource) throws BeansException {
-        if (Arrays.asList(beanClass.getInterfaces()).contains(LTCallback.class)) {
+        if (com.charserzh.lmt.core.callback.LTCallback.class.isAssignableFrom(beanClass)){
             return new Object[] { this.applicationContext.getBean(LTCallbackMethodInterceptor.class) };
         }
         return DO_NOT_PROXY;
@@ -82,7 +82,7 @@ public class LTCallbackBeanPostProcessor extends AbstractAutoProxyCreator implem
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        System.out.println("start to config LTAnnotation bean");
+        log.info("LTCallbackBeanPostProcessor: postProcessBeanFactory executed");
     }
 
     /**
@@ -105,6 +105,10 @@ public class LTCallbackBeanPostProcessor extends AbstractAutoProxyCreator implem
      */
     private Set<String> resolvePackageToScan(Set<String> packagesToScan) {
         LinkedHashSet<String> resolvedPackagesToScan = new LinkedHashSet<>(packagesToScan.size());
+        if (environment == null) {
+            return resolvedPackagesToScan;
+        }
+
         for (String packageToScan : packagesToScan) {
             if (StringUtils.hasText(packageToScan)) {
                 resolvedPackagesToScan.add(this.environment.resolvePlaceholders(packageToScan));
