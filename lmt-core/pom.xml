@@ -10,6 +10,8 @@
     </parent>
 
     <artifactId>lmt-core</artifactId>
+    <version>1.0.0</version>
+    <name>lmt-core</name>
 
 
     <properties>
@@ -67,6 +69,11 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
         <!-- xxl-job -->
