@@ -11,38 +11,44 @@ import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Component
-public class LmtTask {
+
+public class LmtTask implements ApplicationContextAware, InitializingBean {
 
     private static final Logger log = LoggerFactory.getLogger(LmtTask.class);
     private static final Long DEFAULT_CURRENT = 1L;
     private static final Long DEFAULT_PAGE_SIZE = 100L;
 
-    private final Map<String, LTCallback> callbackMap;
+    private Map<String, LTCallback> callbackMap;
     private final StatusTransactionRecordRepository repository;
 
+    private ApplicationContext applicationContext;
 
     public LmtTask(
-            StatusTransactionRecordRepository repository,
-            List<LTCallback> callbacks
+            StatusTransactionRecordRepository repository
     ) {
         this.repository = repository;
-        this.callbackMap = callbacks.stream()
-                .collect(Collectors.toMap(
-                        cb -> AopUtils.getTargetClass(cb).getAnnotation(LMT.class).bizSceneCode(),
-                        Function.identity(),
-                        (oldVal, newVal) -> {
-                            log.warn("Duplicate bizSceneCode found: {}", oldVal);
-                            return newVal;
-                        }
-                ));
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Map<String, LTCallback> callbacks = this.applicationContext.getBeansOfType(LTCallback.class);
+        this.callbackMap = callbacks.values().stream().collect(Collectors.toMap(km -> ((LMT)AopUtils.getTargetClass(km).getAnnotation(LMT.class)).bizSceneCode(), Function.identity()));
+
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 
     @XxlJob("orderTimeoutCancelJobHandler")

@@ -6,7 +6,6 @@ import com.charserzh.lmt.core.annotation.LMT;
 import com.charserzh.lmt.core.callback.LTCallback;
 import com.charserzh.lmt.core.model.StatusTransactionRecordEntity;
 import com.charserzh.lmt.core.repository.StatusTransactionRecordRepository;
-import com.google.common.collect.Lists;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
@@ -21,15 +20,11 @@ import org.springframework.util.StringUtils;
 
 
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.xxl.job.core.context.XxlJobHelper;
-import com.xxl.job.core.handler.annotation.XxlJob;
-import org.springframework.stereotype.Component;
 
-@Component
 public class LmtConcurrentTask implements ApplicationContextAware, InitializingBean {
     private static final Logger log = LoggerFactory.getLogger(LmtConcurrentTask.class);
     private static final Long DEFAULT_CURRENT = 1L;
