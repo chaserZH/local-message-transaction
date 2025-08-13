@@ -4,6 +4,7 @@ package com.charserzh.lmt.configuration;
 import com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration;
 import com.charserzh.lmt.core.annotation.EnableLMT;
 import com.charserzh.lmt.core.config.LTBeanImporter;
+import com.charserzh.lmt.core.config.LTCallbackMethodInterceptor;
 import com.charserzh.lmt.core.config.LmtProperties;
 import com.charserzh.lmt.core.config.job.LmtTask;
 import com.charserzh.lmt.core.repository.StatusTransactionRecordRepository;
@@ -40,5 +41,10 @@ public class LmtAutoConfiguration {
     @Bean
     public LmtTask lmtTask(StatusTransactionRecordRepository statusTransactionRecordRepository) {
         return new LmtTask(statusTransactionRecordRepository);
+    }
+
+    @Bean
+    public LTCallbackMethodInterceptor ltCallbackMethodInterceptor() {
+        return new LTCallbackMethodInterceptor();
     }
 }
