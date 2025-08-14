@@ -2,3 +2,4 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 com.charserzh.lmt.configuration.LmtAutoConfiguration,\
 com.charserzh.lmt.configuration.XXLJobAutoConfiguration,\
 com.charserzh.lmt.configuration.LmtExecutorConfig
+

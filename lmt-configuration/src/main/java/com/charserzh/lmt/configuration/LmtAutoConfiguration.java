@@ -35,32 +35,22 @@ public class LmtAutoConfiguration {
     @Resource
     private StatusTransactionRecordMapper statusTransactionRecordMapper;
 
-    /**
-     * 注入本地消息事务仓储
-     */
     @Bean
     public StatusTransactionRecordRepository statusTransactionRecordRepository() {
         System.out.println("LmtAutoConfiguration loaded: StatusTransactionRecordRepository init");
         return new StatusTransactionRecordRepositoryImpl(this.statusTransactionRecordMapper);
     }
 
-    /**
-     * 注入 LmtTaskUnified
-     * 自动注入线程池：
-     * - 优先使用接入方自定义 lmtExecutorService Bean
-     * - 如果不存在则使用默认线程池（LmtExecutorConfig 创建）
-     */
     @Bean
     public LmtTaskUnified lmtTaskUnified(StatusTransactionRecordRepository repository,
                                          ExecutorService lmtExecutorService) {
+        System.out.println("LmtAutoConfiguration loaded: LmtTaskUnified init");
         return new LmtTaskUnified(repository, lmtExecutorService);
     }
 
-    /**
-     * 注册 AOP 拦截器，用于 LTCallback 回调方法
-     */
     @Bean
     public LTCallbackMethodInterceptor ltCallbackMethodInterceptor(@Lazy StatusTransactionRecordRepository repository) {
+        System.out.println("LmtAutoConfiguration loaded: LTCallbackMethodInterceptor init");
         return new LTCallbackMethodInterceptor(repository);
     }
 

@@ -7,23 +7,26 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 
 
-@ComponentScan(basePackages = {"com.charserzh.lmt"})
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.charserzh.lmt")
 public class Application {
 
 
     public static void main(String[] args) throws InterruptedException {
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
 
-        // 打印所有 Bean 名称
         String[] beanNames = context.getBeanDefinitionNames();
         System.out.println("Loaded Beans:");
         for (String name : beanNames) {
-            System.out.println(name);
+            if (name.contains("Handler")) System.out.println(name);
         }
 
-        // 阻塞主线程，防止进程退出
-        Thread.currentThread().join(500000);
+        // 阻塞主线程，保证非 Web 项目持续运行
+        try {
+            Thread.currentThread().join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
     }
 
 }

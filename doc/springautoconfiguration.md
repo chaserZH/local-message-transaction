@@ -14,37 +14,41 @@ com.charserzh.lmt.configuration.LmtExecutorConfig
 ## 3. 自动装配类
 LmtAutoConfiguration自动装配初始化顺序
 ```mermaid
-┌─────────────────────────────┐
-│  spring.factories 文件       │
-│  org.springframework.boot.   │
-│  autoconfigure.EnableAuto-  │
-│  Configuration=              │
-│  LmtAutoConfiguration,       │
-│  XXLJobAutoConfiguration,    │
-│  LmtExecutorConfig           │
-└───────────────┬─────────────┘
-                │
-                ▼
-┌─────────────────────────────┐
-│ Spring Boot 启动时扫描自动装配 │
-│ 候选类（LmtAutoConfiguration / XXLJobAutoConfiguration / ...）│
-└───────────────┬─────────────┘
-                │
-                ▼
-┌─────────────────────────────┐
-│ 条件注解判断是否加载 Bean      │
-│ 例如：                        │
-│ @ConditionalOnProperty       │
-│ @ConditionalOnMissingBean    │
-└───────────────┬─────────────┘
-                │
-                ▼
-┌─────────────────────────────┐
-│ 真正实例化 Bean 并注入 Spring │
-│ 容器（StatusTransactionRecordRepository, │
-│ LmtTaskUnified, ExecutorService,           │
-│ XxlJobSpringExecutor 可选）               │
-└─────────────────────────────┘
+                        ┌───────────────────────────────┐
+                        │        Application             │
+                        │  @SpringBootApplication        │
+                        └─────────────┬─────────────────┘
+                                      │
+                                      ▼
+                       ┌───────────────────────────────┐
+                       │      LmtAutoConfiguration      │
+                       └─────────────┬─────────────────┘
+                                     │
+       ┌─────────────────────────────┼─────────────────────────────┐
+       ▼                             ▼                             ▼
+┌─────────────────┐        ┌───────────────────────────┐  ┌───────────────────────────────┐
+│ StatusTransaction│        │    LmtTaskUnified         │  │ LTCallbackMethodInterceptor  │
+│ Repository Bean  │        │(depends on Repository +   │  │ (depends on Repository)      │
+│                 │        │ ExecutorService)          │  │                               │
+└─────────────────┘        └───────────────────────────┘  └───────────────────────────────┘
+                                     │
+                                     ▼
+                       ┌───────────────────────────────┐
+                       │   XXLJobAutoConfiguration     │
+                       │  @ConditionalOnProperty       │
+                       └─────────────┬─────────────────┘
+                                     │
+               ┌─────────────────────┼─────────────────────┐
+               ▼                     ▼                     ▼
+  ┌─────────────────────┐  ┌─────────────────────────┐    ┌───────────────────────┐
+  │ XxlJobSpringExecutor │  │ DefaultLmtJobHandler    │    │  Log Directory Created │
+  │(depends on properties│  │(depends on LmtTaskUnified│   │  if not exist)         │
+  │ adminAddresses, etc.)│  │                         │    │                       │
+  └─────────────────────┘  └─────────────────────────┘    └───────────────────────┘
+               │                     │
+               ▼                     ▼
+   XXL-Job Admin / Executor          Handler Registered
+     注册成功 / 启动成功             lmtUnifiedJobHandler
 
 ```
 
@@ -62,91 +66,91 @@ LmtAutoConfiguration自动装配初始化顺序
 
 ## 接入方使用线程池属性 vs 自定义 Bean 的决策流程图
 ```mermaid
-Spring 容器启动
-        │
-        ▼
-检查容器中是否存在 ExecutorService 类型的 Bean
-        │
-   ┌────┴────┐
-   │         │
-有自定义 Bean   没有自定义 Bean
-   │         │
-   ▼         ▼
-使用接入方提供的线程池  创建默认线程池（LmtExecutorConfig）
-   │         │
-   │         ▼
-   │   ThreadPoolExecutor(
-   │       corePoolSize = lmt.executor.corePoolSize,
-   │       maxPoolSize  = lmt.executor.maxPoolSize,
-   │       keepAlive   = lmt.executor.keepAliveSeconds,
-   │       queueCapacity = lmt.executor.queueCapacity,
-   │       NamedThreadFactory("lmtExecutor")
-   │   )
-   │
-   ▼
-注入到 LmtTaskUnified
-        │
-        ▼
-任务执行：
-- 并行模式 → 使用注入线程池执行 LmtArrayTask
-- 同步模式 → 逐条调用 callback
+                        ┌───────────────────────────────┐
+                        │        Application             │
+                        │  @SpringBootApplication        │
+                        └─────────────┬─────────────────┘
+                                      │
+                                      ▼
+                       ┌───────────────────────────────┐
+                       │      LmtAutoConfiguration      │
+                       └─────────────┬─────────────────┘
+                                     │
+       ┌─────────────────────────────┼─────────────────────────────┐
+       ▼                             ▼                             ▼
+┌─────────────────┐        ┌───────────────────────────┐  ┌───────────────────────────────┐
+│ StatusTransaction│        │    LmtTaskUnified         │  │ LTCallbackMethodInterceptor  │
+│ Repository Bean  │        │(depends on Repository +   │  │ (depends on Repository)      │
+│                 │        │ ExecutorService)          │  │                               │
+└─────────────────┘        └───────────────────────────┘  └───────────────────────────────┘
+                                     │
+                                     ▼
+                       ┌───────────────────────────────┐
+                       │   XXLJobAutoConfiguration     │
+                       │  @ConditionalOnProperty       │
+                       └─────────────┬─────────────────┘
+                                     │
+               ┌─────────────────────┼─────────────────────┐
+               ▼                     ▼                     ▼
+  ┌─────────────────────┐  ┌─────────────────────────┐    ┌───────────────────────┐
+  │ XxlJobSpringExecutor │  │ DefaultLmtJobHandler    │    │  Log Directory Created │
+  │(depends on properties│  │(depends on LmtTaskUnified│   │  if not exist)         │
+  │ adminAddresses, etc.)│  │                         │    │                       │
+  └─────────────────────┘  └─────────────────────────┘    └───────────────────────┘
+               │                     │
+               ▼                     ▼
+   XXL-Job Admin / Executor          Handler Registered
+     注册成功 / 启动成功             lmtUnifiedJobHandler
+
 ```
 
-## SDK 自动装配 + 线程池决策流程图
-展示 LmtTaskUnified、线程池和接入方配置之间的关系。
-```mermaid
-┌───────────────────────┐
-│    接入方 Spring Boot  │
-│   application.yml 或   │
-│   自定义 ExecutorService │
-└─────────┬─────────────┘
-          │
-          │ 1. 提供 ExecutorService Bean?
-          ▼
-┌─────────────────────────────┐
-│       Spring 容器扫描        │
-│  @EnableConfigurationProperties │
-│  @Import(LTBeanImporter)      │
-│  自动注册 LmtAutoConfiguration │
-└─────────┬───────────────────┘
-          │
-          │ 2. 注入 ExecutorService
-          ▼
-┌─────────────────────────────┐
-│   LmtExecutorConfig Bean     │
-│  @ConditionalOnMissingBean   │
-│  默认创建 ThreadPoolExecutor │
-└─────────┬───────────────────┘
-          │
-          │ 3. 注入 LmtTaskUnified
-          ▼
-┌─────────────────────────────┐
-│      LmtTaskUnified         │
-│  - repository 注入           │
-│  - ExecutorService 注入      │
-│  - 处理任务，可并行或顺序    │
-│    并行 -> 提交到 executorService │
-└─────────┬───────────────────┘
-          │
-          │ 4. 执行 LmtArrayTask (批量处理)
-          ▼
-┌─────────────────────────────┐
-│       LmtArrayTask          │
-│ - 接收 ExecutorService      │
-│ - 并行处理批量 StatusTransactionRecordEntity │
-└─────────────────────────────┘
+## 注册UML图
+
+```plantuml
+@startuml
+actor User
+
+participant "SpringApplication" as SpringApp
+participant "LmtAutoConfiguration" as LmtAuto
+participant "StatusTransactionRecordRepository" as Repo
+participant "ExecutorService" as Executor
+participant "LmtTaskUnified" as TaskUnified
+participant "LTCallbackMethodInterceptor" as Interceptor
+participant "XXLJobAutoConfiguration" as XXLJobAuto
+participant "XxlJobSpringExecutor" as ExecutorXXL
+participant "DefaultLmtJobHandler" as Handler
+participant "XXL-Job Admin" as Admin
+
+== Spring Boot 启动 ==
+User -> SpringApp: run()
+SpringApp -> LmtAuto: init()
+
+== LMT 初始化 ==
+LmtAuto -> Repo: create StatusTransactionRecordRepository
+LmtAuto -> Executor: create ExecutorService
+LmtAuto -> TaskUnified: create LmtTaskUnified
+LmtAuto -> Interceptor: create LTCallbackMethodInterceptor
+
+== XXL-Job 初始化 (条件加载) ==
+SpringApp -> XXLJobAuto: init() [if xxl.job.admin.addresses exists]
+XXLJobAuto -> ExecutorXXL: create XxlJobSpringExecutor
+ExecutorXXL -> ExecutorXXL: mkdir logPath
+
+== Handler 注册 ==
+XXLJobAuto -> Handler: create DefaultLmtJobHandler
+Handler -> ExecutorXXL: register @XxlJob("lmtUnifiedJobHandler")
+ExecutorXXL -> Admin: register job handler
+
+== XXL-Job Server 启动 ==
+ExecutorXXL -> Admin: start remoting server (port 9999)
+
+== 任务执行 ==
+Admin -> Handler: execute("jobParam")
+Handler -> TaskUnified: execute(param)
+Handler --> Admin: ReturnT.SUCCESS
+
+@enduml
 ```
-流程说明
-1. 接入方提供 ExecutorService
-   * 优先使用接入方自定义线程池（例如性能可控的 ThreadPoolExecutor）
-2. 未提供线程池
-   * SDK 会使用默认线程池（LmtExecutorConfig 创建）
-3. LmtTaskUnified
-   * 注入仓储、线程池
-   * 根据 param.parallel=true 决定是否并行处理
-4. 并行处理
-   * 批量任务交给 LmtArrayTask 提交到线程池执行
-5. 顺序处理
-   * 直接在主线程处理每条记录
+![himg](https://chaser-zh-bucket.oss-cn-shenzhen.aliyuncs.com//uPic/XLJDQjj04BxlKom-sOVute2BNJVG5WU2Vo1GUbXBOtjhQLVihehx0gLrS-Yfjq1zIcuz57enUPl8v34wMlre9Rl41qixytsptymtgAyDKoOE0y8y8nMTQL24H1ZZ7e-OCBGrYHGNoq4K1TnZXalHeapJCbe7Zq8pY8qSIh7WorXL-3pHA6sOYVLKCQ6PbqB7u4dbZo6IcgESpvQAnmRlOWDUZFa9g4_S0uigOaTwfaolPu8l.png)
 
 
