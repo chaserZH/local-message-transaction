@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutorService;
 @EnableLMT("${lmt.base-packages}")
 @ConditionalOnProperty(name = "lmt.enabled", havingValue = "true", matchIfMissing = false)
 @MapperScan({"com.charserzh.lmt.core.repository.dao"})
-@AutoConfigureAfter({MybatisPlusAutoConfiguration.class, XXLJobAutoConfiguration.class})
+@AutoConfigureAfter({MybatisPlusAutoConfiguration.class})
 public class LmtAutoConfiguration {
 
     @Resource

@@ -13,44 +13,40 @@ com.charserzh.lmt.configuration.LmtExecutorConfig
 
 ## 3. 自动装配类
 LmtAutoConfiguration自动装配初始化顺序
+```mermaid
+┌─────────────────────────────┐
+│  spring.factories 文件       │
+│  org.springframework.boot.   │
+│  autoconfigure.EnableAuto-  │
+│  Configuration=              │
+│  LmtAutoConfiguration,       │
+│  XXLJobAutoConfiguration,    │
+│  LmtExecutorConfig           │
+└───────────────┬─────────────┘
+                │
+                ▼
+┌─────────────────────────────┐
+│ Spring Boot 启动时扫描自动装配 │
+│ 候选类（LmtAutoConfiguration / XXLJobAutoConfiguration / ...）│
+└───────────────┬─────────────┘
+                │
+                ▼
+┌─────────────────────────────┐
+│ 条件注解判断是否加载 Bean      │
+│ 例如：                        │
+│ @ConditionalOnProperty       │
+│ @ConditionalOnMissingBean    │
+└───────────────┬─────────────┘
+                │
+                ▼
+┌─────────────────────────────┐
+│ 真正实例化 Bean 并注入 Spring │
+│ 容器（StatusTransactionRecordRepository, │
+│ LmtTaskUnified, ExecutorService,           │
+│ XxlJobSpringExecutor 可选）               │
+└─────────────────────────────┘
 
-Spring Boot 容器启动
-┌──────────────────────────────┐
-│   自动扫描 / spring.factories │
-└─────────────┬────────────────┘
-│
-▼
-┌──────────────────────────────┐
-│ XXLJobAutoConfiguration       │
-│  @Configuration               │
-│  Bean: XxlJobSpringExecutor   │
-└─────────────┬────────────────┘
-│  （AutoConfigureAfter 保证顺序）
-▼
-┌──────────────────────────────┐
-│ LmtExecutorConfig             │
-│  @Configuration               │
-│  Bean: lmtExecutorService     │
-│  使用属性配置创建线程池       │
-└─────────────┬────────────────┘
-│
-▼
-┌──────────────────────────────┐
-│ LmtAutoConfiguration          │
-│  @Configuration               │
-│  Bean: StatusTransactionRepo  │
-│  Bean: LmtTaskUnified         │
-│    - 注入 repository          │
-│    - 注入 lmtExecutorService  │
-│  Bean: LTCallbackMethodInterceptor │
-└─────────────┬────────────────┘
-│
-▼
-┌──────────────────────────────┐
-│ LmtTaskUnified 执行定时任务   │
-│  - 并行模式使用线程池         │
-│  - 同步模式逐条处理           │
-└──────────────────────────────┘
+```
 
 ### 说明
 1. XXLJobAutoConfiguration 先加载，保证 XxlJobSpringExecutor 可用。

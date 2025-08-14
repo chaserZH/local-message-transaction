@@ -7,6 +7,7 @@ import java.io.Serializable;
 
 /**
  * 定时任务参数
+ * @author zhanghao
  */
 @Data
 public class LmtTaskParam implements Serializable {
