@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutorService;
 @Configuration
 @Import({LTBeanImporter.class})
 @EnableConfigurationProperties({LmtProperties.class, LmtExecutorProperties.class})
-@EnableLMT("${lmt.base-packages}")
+@EnableLMT
 @ConditionalOnProperty(name = "lmt.enabled", havingValue = "true", matchIfMissing = false)
 @MapperScan({"com.charserzh.lmt.core.repository.dao"})
 @AutoConfigureAfter({MybatisPlusAutoConfiguration.class})

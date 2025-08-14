@@ -66,6 +66,8 @@ public class LTBeanImporter implements ImportBeanDefinitionRegistrar, Environmen
 
             // 如果没有配置，默认扫描导入类所在包
             if (packageToScan.isEmpty()) {
+                // 默认加上 com.charserzh.lmt
+                packageToScan.add("com.charserzh.lmt");
                 packageToScan.add(ClassUtils.getPackageName(importingClassMetadata.getClassName()));
             }
             return packageToScan;

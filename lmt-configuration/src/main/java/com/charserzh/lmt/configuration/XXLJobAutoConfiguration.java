@@ -67,12 +67,12 @@ public class XXLJobAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(DefaultLmtJobHandler.class)
+    @ConditionalOnMissingBean(name = "lmtUnifiedJobHandler")
     public DefaultLmtJobHandler defaultLmtJobHandler(LmtTaskUnified lmtTaskUnified) {
         return new DefaultLmtJobHandler(lmtTaskUnified);
     }
 
-    @Component
+    // 注意，这里没有 @Component
     public static class DefaultLmtJobHandler {
 
         private final LmtTaskUnified lmtTaskUnified;

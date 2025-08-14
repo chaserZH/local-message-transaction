@@ -17,10 +17,9 @@ import java.util.function.Supplier;
 
 
 
-public class AbstractTransactionCommand {
+public abstract class AbstractTransactionCommand {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-
 
     @Resource
     private Executor executor;
