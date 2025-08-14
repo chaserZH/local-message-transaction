@@ -5,7 +5,7 @@ import com.charserzh.lmt.core.callback.LTCallback;
 import com.charserzh.lmt.core.model.CallbackResultValue;
 import com.charserzh.lmt.core.model.StatusTransactionRecordEntity;
 
-@LMT(bizSceneCode = "test")
+@LMT(bizSceneCode = "test_lmt")
 public class TestCallback implements LTCallback {
 
     @Override

@@ -58,11 +58,12 @@ public class StatusTransactionRecordRepositoryImpl implements StatusTransactionR
 
     @Override
     public void update(StatusTransactionRecordEntity entity) {
+        log.info("prepare update local message transaction record,param{}", JSONUtil.toJsonStr(entity));
+
         final StatusTransactionRecordDO recordDO = BeanUtil.copyProperties(entity, StatusTransactionRecordDO.class);
         try {
-            this.statusTransactionRecordMapper.update(new StatusTransactionRecordDO() {
-
-            }, Wrappers.lambdaUpdate(StatusTransactionRecordDO.class).eq(StatusTransactionRecordDO::getId, recordDO.getId()));
+            this.statusTransactionRecordMapper.update(recordDO, Wrappers.lambdaUpdate(StatusTransactionRecordDO.class).eq(StatusTransactionRecordDO::getId, recordDO.getId()));
+            log.info("update local message transaction record end");
         } catch (Exception e) {
             log.error("update status transaction error", e);
         }

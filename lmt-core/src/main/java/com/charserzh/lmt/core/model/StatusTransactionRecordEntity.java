@@ -72,4 +72,26 @@ public class StatusTransactionRecordEntity {
      * 逻辑删除，执行成功之后，会将此记录删除 1.已删除 0.未删除
      */
     private Integer isDelete;
+
+
+    public StatusTransactionRecordEntity(@NonNull String bizSceneCode, @NonNull String bizScene, @NonNull String bizId, @NonNull String bizContent) {
+        this.bizSceneCode = bizSceneCode;
+        this.bizScene = bizScene;
+        this.bizId = bizId;
+        this.bizContent = bizContent;
+    }
+
+    public StatusTransactionRecordEntity(Long id, Integer execStatus, Long firstExecTime, @NonNull String bizSceneCode, @NonNull String bizScene, Integer execTimes, Integer retryTimes, @NonNull String bizId, @NonNull String bizContent, String errorMessage, Integer isDelete) {
+        this.id = id;
+        this.execStatus = execStatus;
+        this.firstExecTime = firstExecTime;
+        this.bizSceneCode = bizSceneCode;
+        this.bizScene = bizScene;
+        this.execTimes = execTimes;
+        this.retryTimes = retryTimes;
+        this.bizId = bizId;
+        this.bizContent = bizContent;
+        this.errorMessage = errorMessage;
+        this.isDelete = isDelete;
+    }
 }

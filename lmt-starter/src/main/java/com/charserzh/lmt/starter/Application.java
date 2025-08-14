@@ -1,14 +1,35 @@
 package com.charserzh.lmt.starter;
 
 
+import cn.hutool.core.thread.NamedThreadFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
+@EnableTransactionManagement
 @SpringBootApplication(scanBasePackages = "com.charserzh.lmt")
 public class Application {
+
+    @Bean
+    public Executor executor() {
+        return new ThreadPoolExecutor(
+                5,
+                10,
+                60,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(2040, true),
+                new NamedThreadFactory("fulfillment-async", true),
+                new ThreadPoolExecutor.CallerRunsPolicy()
+        );
+    }
 
 
     public static void main(String[] args) throws InterruptedException {

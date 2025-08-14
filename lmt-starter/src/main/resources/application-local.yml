@@ -32,3 +32,8 @@ xxl:
       logpath: /Users/zhanghao/logs/xxl-job/jobhandler
       logretentiondays: 30
 
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+
